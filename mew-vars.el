@@ -2708,6 +2708,19 @@ The first member is displayed as a default value."
   :group 'mew-summary
   :type '(choice (const nil) (repeat string)))
 
+(defcustom mew-nmz-pick-gather-field-list
+  `((,mew-from: address "from=" "to=" "cc=")
+    (,mew-to: address "from=" "to=" "cc=")
+    (,mew-cc: address "from=" "to=" "cc=")
+    (,mew-message-id: msgid "message-id=" "in-reply-to=" "references=")
+    (,mew-in-reply-to: msgid "message-id=" "in-reply-to=" "references=")
+    (,mew-references: msgid "message-id=" "in-reply-to=" "references="))
+  "*A list of completion keyword from message."
+  :group 'mew-summary
+  :type '(repeat (list string
+		       (choice (const address) (const msgid))
+		       string string string)))
+
 (defcustom mew-pick-field-list
   '("head=" "to=" "cc=" "subject=" "dcc=" "fcc=" "bcc=" "date="
     "reply-to=" "followup-to=" "from=" "newsgroups=")

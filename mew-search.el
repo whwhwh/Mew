@@ -499,8 +499,67 @@ with a search method."
 ;;; Hyper Estraier
 ;;;
 
+(defun mew-nmz-pick-pattern-gather-header ()
+  (when mew-nmz-pick-gather-field-list
+    (save-excursion
+      (let* ((fld (mew-summary-folder-name))
+	     (msg (mew-summary-message-number))
+	     (buf (mew-cache-hit fld msg))
+	     (gathers mew-nmz-pick-gather-field-list)
+	     killbuff retlst gather header duplchk mid addrs addr prefix)
+	(when (and (not buf) fld msg)
+	  (setq buf (generate-new-buffer mew-buffer-prefix))
+	  (setq killbuff t)
+	  (set-buffer buf)
+	  (mew-erase-buffer)
+	  (mew-insert-message
+	   fld msg mew-cs-text-for-read mew-header-reasonable-size))
+	(when (and buf (get-buffer buf) (buffer-name (get-buffer buf)))
+	  (set-buffer buf)
+	  (while gathers
+	    (setq gather (car gathers))
+	    (setq header (mew-header-get-value (car gather)))
+	    (when (and header (car (cdr gather)))
+	      (cond
+	       ((eq (car (cdr gather)) 'msgid)
+		(while (and header (string-match "<\\([^>]+\\)>" header))
+		  (setq mid (match-string 1 header))
+		  (setq header (substring header (match-end 0)))
+		  (if (member mid duplchk)
+		      ()
+		    (setq prefix (nthcdr 2 gather))
+		    (setq duplchk (cons mid duplchk))
+		    (while prefix
+		      (setq retlst (cons (concat (car prefix) mid) retlst))
+		      (setq prefix (cdr prefix))))))
+	       ((eq (car (cdr gather)) 'address)
+		(setq addrs (mew-addrstr-parse-address-list header))
+		(while (setq addr (car addrs))
+		  (setq addr (downcase addr))
+		  (if (not (member addr duplchk))
+		      (let ((prefix (nthcdr 2 gather)))
+			(setq duplchk (cons addr duplchk))
+			(while prefix
+			  (setq retlst (cons (concat (car prefix) addr) retlst))
+			  (setq prefix (cdr prefix)))))
+		  (setq addrs (cdr addrs))))))
+	    (setq gathers (cdr gathers)))
+	  (when killbuff (mew-kill-buffer buf))
+	  (when retlst
+	    (setq retlst (append
+			  retlst
+			  (list
+			   (concat " " (make-string (- (window-width) 10) ?-))))))
+	  (nreverse retlst))))))
+
+(defun mew-nmz-pick-field-list ()
+  (let ((lst (append mew-pick-field-list
+		     (mew-nmz-pick-pattern-gather-header))))
+    (mew-uniq-list lst)))
+
 (defun mew-est-input-filter ()
-  (mew-input-pick-pattern "Hyper Estraier filter"))
+  (let ((mew-pick-field-list (mew-nmz-pick-field-list)))
+    (mew-input-pick-pattern "Hyper Estraier filter")))
 
 (defvar mew-search-est-db "casket")
 (defvar mew-prog-est-update "mewest")

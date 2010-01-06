@@ -160,14 +160,15 @@ ${FIND} "`path_conv \"${TGTDIR}\"`" \
   -type d -name ${INDEXDIR_ORG} -prune -o \
   -type d -name ${INDEXDIR_REPLICA} -prune -o \
   -type f \( -name "[0-9]" -o -name "[0-9]*[0-9]" -o -name "[0-9]*${SUFFIX}" \) -print |\
-  ${ESTCMD} gather -cl -fm -cm -sd -xh "`path_conv \"${BASEDIR}/${INDEXDIR}\"`" - > ${OUTPUT} ||\
+  ${ESTCMD} gather -lf -1 -cl -fm -cm -sd -xh "`path_conv \"${BASEDIR}/${INDEXDIR}\"`" - > ${OUTPUT} ||\
     cleanup_exit "Indexing new messages...failed"
 
 echo "Indexing new messages...done"
 if [ "${BASEDIR}/${INDEXDIR}" = "${BASEDIR}/${INDEXDIR_REPLICA}" ]; then
     echo "Replacing old index with new one..."
-    rm -fr "${BASEDIR}/${INDEXDIR_ORG}"
+    mv "${BASEDIR}/${INDEXDIR_ORG}" "${BASEDIR}/${INDEXDIR_ORG}.tmp"
     mv "${BASEDIR}/${INDEXDIR_REPLICA}" "${BASEDIR}/${INDEXDIR_ORG}"
+    rm -fr "${BASEDIR}/${INDEXDIR_ORG}.tmp"
     echo "Replacing old index with new one...done"
 fi
 

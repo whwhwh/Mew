@@ -505,7 +505,8 @@ citation prefix and label.
 	(if (bolp) (mew-cite-format-flowed))
 	(while (= 0 (forward-line))
 	  (unless (= (point) (point-max))
-	    (mew-cite-format-flowed)))))))
+	    (mew-cite-format-flowed)))
+	(exchange-point-and-mark)))))
 
 (defun mew-cite-format-flowed ()
   (insert mew-flowed-quoted)
